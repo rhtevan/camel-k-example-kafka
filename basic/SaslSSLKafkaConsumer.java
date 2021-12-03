@@ -16,7 +16,11 @@
  */
 
 // kamel run --secret kafka-props SaslSSLKafkaConsumer.java --dev
-// camel-k: language=java dependency=mvn:org.apache.camel.quarkus:camel-quarkus-kafka dependency=mvn:io.strimzi:kafka-oauth-client:0.7.1.redhat-00003
+// camel-k: language=java 
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-kafka 
+/**
+ * // camel-k: dependency=mvn:io.strimzi:kafka-oauth-client:0.7.1.redhat-00003
+ */
 
 import org.apache.camel.builder.RouteBuilder;
 
@@ -24,7 +28,7 @@ public class SaslSSLKafkaConsumer extends RouteBuilder {
   @Override
   public void configure() throws Exception {
 	log.info("About to start route: Kafka -> Log ");
-	from("kafka:{{consumer.topic}}")
+	from("kafka:{{topic}}?groupId={{consumer.groupId}}")
     .routeId("FromKafka2Log")
     .log("${body}");
   }
