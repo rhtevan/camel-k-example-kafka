@@ -15,21 +15,21 @@
  * limitations under the License.
  */
 
-// kamel run --secret kafka-props SaslSSLKafkaConsumer.java --dev
 // camel-k: language=java 
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-kafka 
-/**
- * // camel-k: dependency=mvn:io.strimzi:kafka-oauth-client:0.7.1.redhat-00003
- */
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-kafka
+// camel-k: dependency=mvn:io.quarkus:quarkus-apicurio-registry-avro
+// camel-k: dependency=mvn:io.apicurio:apicurio-registry-serdes-avro-serde
 
 import org.apache.camel.builder.RouteBuilder;
 
-public class SaslSSLKafkaConsumer extends RouteBuilder {
-  @Override
-  public void configure() throws Exception {
-    log.info("About to start route: Kafka -> Log ");
-    from("kafka:{{topic}}?groupId={{consumer.groupId}}")
-        .routeId("FromKafka2Log")
-        .log("${body}");
-  }
+public class SvcRegKafkaConsumer extends RouteBuilder {
+
+    @Override
+    public void configure() throws Exception {
+
+        // kafka consumer
+        from("kafka:{{kafka.topic.name}}")
+                .routeId("FromKafka2Seda")
+                .log("Received : \"${body}\"");
+    }
 }

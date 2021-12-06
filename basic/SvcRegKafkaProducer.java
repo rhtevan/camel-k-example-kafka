@@ -15,21 +15,27 @@
  * limitations under the License.
  */
 
-// kamel run --secret kafka-props SaslSSLKafkaConsumer.java --dev
 // camel-k: language=java 
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-kafka 
-/**
- * // camel-k: dependency=mvn:io.strimzi:kafka-oauth-client:0.7.1.redhat-00003
- */
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-kafka
+// camel-k: dependency=mvn:io.quarkus:quarkus-apicurio-registry-avro
+// camel-k: dependency=mvn:io.apicurio:apicurio-registry-serdes-avro-serde
+// camel-k: dependency=github:rhtevan:camel-k-example-kafka:svcreg-SNAPSHOT
 
 import org.apache.camel.builder.RouteBuilder;
+import org.acme.kafka.User
 
-public class SaslSSLKafkaConsumer extends RouteBuilder {
-  @Override
-  public void configure() throws Exception {
-    log.info("About to start route: Kafka -> Log ");
-    from("kafka:{{topic}}?groupId={{consumer.groupId}}")
-        .routeId("FromKafka2Log")
-        .log("${body}");
-  }
+public class SvcRegKafkaProducer extends RouteBuilder {
+
+    @Override
+    public void configure() throws Exception {
+        // produces messages to kafka
+
+        User user = new User();
+        user.setName("John");
+        user.setAge(36);
+
+        from("timer:foo?period={{timer.period}}&delay={{timer.delay}}").routeId("FromTimer2Kafka")
+                .setBody(constant(user)).to("kafka:{{kafka.topic.name}}")
+                .log("Message sent correctly sent to the topic! : \"${body}\" ");
+    }
 }

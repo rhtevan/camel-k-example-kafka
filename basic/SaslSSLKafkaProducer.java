@@ -20,19 +20,19 @@
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-kafka
 /**
  * // camel-k: dependency=mvn:io.strimzi:kafka-oauth-client:0.7.1.redhat-00003
- */ 
+ */
 
 import org.apache.camel.builder.RouteBuilder;
 
 public class SaslSSLKafkaProducer extends RouteBuilder {
   @Override
   public void configure() throws Exception {
-  log.info("About to start route: Timer -> Kafka ");
-  from("timer:foo")
-    .routeId("FromTimer2Kafka")
-    .setBody()
-      .simple("Message #${exchangeProperty.CamelTimerCounter}")
-    .to("kafka:{{topic}}")
-    .log("Message correctly sent to the topic!");
+    log.info("About to start route: Timer -> Kafka ");
+    from("timer:foo")
+        .routeId("FromTimer2Kafka")
+        .setBody()
+        .simple("Message #${exchangeProperty.CamelTimerCounter}")
+        .to("kafka:{{topic}}")
+        .log("Message correctly sent to the topic!");
   }
 }
