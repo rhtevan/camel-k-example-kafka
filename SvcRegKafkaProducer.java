@@ -21,6 +21,9 @@
 // camel-k: dependency=mvn:io.apicurio:apicurio-registry-serdes-avro-serde
 // camel-k: dependency=github:rhtevan:camel-k-example-kafka:svcreg-SNAPSHOT
 
+import java.util.Random;
+
+import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.acme.kafka.User;
 
@@ -28,16 +31,18 @@ public class SvcRegKafkaProducer extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        // produces messages to kafka
-
-        User user = new User();
-        user.setName("John");
-        user.setAge(36);
-
         from("timer:foo?period={{timer.period}}&delay={{timer.delay}}")
-            .routeId("FromTimer2Kafka")
-            .setBody(constant(user))
-            .to("kafka:{{kafka.topic.name}}")
-            .log("Message sent correctly sent to the topic! : \"${body}\" ");
+                .routeId("FromTimer2Kafka")
+                .setBody(SvcRegKafkaProducer::generateUser)
+                .to("kafka:{{kafka.topic.name}}")
+                .log("Message sent correctly sent to the topic! : \"${body}\" ");
+    }
+
+    private static User generateUser(Exchange in) {
+        Random random = new Random();
+        User user = new User();
+        user.setName("User-" + random.nextInt(100));
+        user.setAge(random.nextInt(100) + 1);
+        return user;
     }
 }
