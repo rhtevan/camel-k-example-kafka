@@ -22,7 +22,7 @@
 // camel-k: dependency=github:rhtevan:camel-k-example-kafka:svcreg-SNAPSHOT
 
 import org.apache.camel.builder.RouteBuilder;
-import org.acme.kafka.User
+import org.acme.kafka.User;
 
 public class SvcRegKafkaProducer extends RouteBuilder {
 
