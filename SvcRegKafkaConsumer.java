@@ -29,7 +29,7 @@ public class SvcRegKafkaConsumer extends RouteBuilder {
 
         // kafka consumer
         from("kafka:{{kafka.topic.name}}")
-                .routeId("FromKafka2Seda")
+                .routeId("FromKafka2withAvro")
                 .log("Received : \"${body}\"");
     }
 }
