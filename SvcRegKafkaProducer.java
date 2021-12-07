@@ -34,8 +34,10 @@ public class SvcRegKafkaProducer extends RouteBuilder {
         user.setName("John");
         user.setAge(36);
 
-        from("timer:foo?period={{timer.period}}&delay={{timer.delay}}").routeId("FromTimer2Kafka")
-                .setBody(constant(user)).to("kafka:{{kafka.topic.name}}")
-                .log("Message sent correctly sent to the topic! : \"${body}\" ");
+        from("timer:foo?period={{timer.period}}&delay={{timer.delay}}")
+            .routeId("FromTimer2Kafka")
+            .setBody(constant(user))
+            .to("kafka:{{kafka.topic.name}}")
+            .log("Message sent correctly sent to the topic! : \"${body}\" ");
     }
 }

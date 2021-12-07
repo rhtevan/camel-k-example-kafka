@@ -10,19 +10,57 @@
   <name>camel-k-example-kafka-model</name>
 
   <properties>
+    <maven.compiler.target>11</maven.compiler.target>
+    <maven.compiler.source>11</maven.compiler.source>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+    <version.compiler.plugin>3.8.1</version.compiler.plugin>
+    <version.surefire.plugin>2.22.2</version.surefire.plugin>
+
+    <!-- 
+      Apache Camel K Operator 1.7.0
+      Apache Camel K Runtime 1.10.0
+      Apache Camel 3.12.0 (camel-1)
+      camel-k-integration 1.7.0 on JVM (powered by Quarkus 2.4.0.Final)
+    -->
+    <quarkus.platform.version>2.4.0.Final</quarkus.platform.version>
+
+    <avro.version>1.10.0</avro.version>
+    <apicurio-registry.version>2.1.4.Final</apicurio-registry.version>
+    
+    <!-- For external access, e.g. execute maven command manually -->
+    <apicurio.registry.url>http://demo.service-registry.router-default.apps.cluster-5gv62.5gv62.sandbox272.opentlc.com/apis/registry/v2</apicurio.registry.url>
+    <!-- For internal access 
+    <apicurio.registry.url>http://demo-service.service-registry.svc:8080/apis/registry/v2</apicurio.registry.url> 
+    -->
+
+    <!-- artifactId needs to follow a pattern: <kafka-topic-name>-value  -->
+    <apicurio.registry.artifact.artifact-id.user>demo-user-value</apicurio.registry.artifact.artifact-id.user>
   </properties>
 
   <dependencies>
     <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-apicurio-registry-avro</artifactId>
-      <version>2.1.4.Final</version>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+      <version>${avro.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.apicurio</groupId>
+      <artifactId>apicurio-registry-maven-plugin</artifactId>
+      <version>${apicurio-registry.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>io.apicurio</groupId>
       <artifactId>apicurio-registry-serdes-avro-serde</artifactId>
-      <version>2.1.4.Final</version>
+      <version>${apicurio-registry.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-apicurio-registry-avro</artifactId>
+      <version>${quarkus.platform.version}</version>
     </dependency>
   </dependencies>
 
@@ -44,13 +82,144 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.1</version>
+        <version>${version.compiler.plugin}</version>
         <configuration>
-          <source>11</source>
-          <target>11</target>
+          <source>${maven.compiler.source}</source>
+          <target>${maven.compiler.target}</target>
+          <showDeprecation>false</showDeprecation>
+          <showWarnings>false</showWarnings>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${version.surefire.plugin}</version>
+        <configuration>
+          <systemPropertyVariables>
+            <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+            <maven.home>${maven.home}</maven.home>
+          </systemPropertyVariables>
         </configuration>
       </plugin>
     </plugins>
   </build>
-
+  <profiles>
+    <profile>
+      <id>make</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro-maven-plugin</artifactId>
+            <version>${avro.version}</version>
+            <executions>
+              <execution>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>schema</goal>
+                </goals>
+                <configuration>
+                  <sourceDirectory>${project.basedir}/src/main/resources/avro/schema/</sourceDirectory>
+                  <outputDirectory>${project.basedir}/src/main/java/</outputDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>upload</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>io.apicurio</groupId>
+            <artifactId>apicurio-registry-maven-plugin</artifactId>
+            <version>${apicurio-registry.version}</version>
+            <executions>
+              <execution>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>register</goal>
+                </goals>
+                <configuration>
+                  <registryUrl>${apicurio.registry.url}</registryUrl>
+                  <artifacts>
+                    <artifact>
+                      <groupId>default</groupId>
+                      <artifactId>${apicurio.registry.artifact.artifact-id.user}</artifactId>
+                      <type>AVRO</type>
+                      <file>${project.basedir}/src/main/resources/avro/schema/user.avsc</file>
+                    </artifact>
+                  </artifacts>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>test</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>io.apicurio</groupId>
+            <artifactId>apicurio-registry-maven-plugin</artifactId>
+            <version>${apicurio-registry.version}</version>
+            <executions>
+              <execution>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>test-update</goal>
+                </goals>
+                <configuration>
+                  <registryUrl>${apicurio.registry.url}</registryUrl>
+                  <artifacts>
+                    <artifact>
+                      <groupId>default</groupId>
+                      <artifactId>${apicurio.registry.artifact.artifact-id.user}</artifactId>
+                      <file>${project.basedir}/src/main/resources/avro/schema/user.avsc</file>
+                    </artifact>
+                  </artifacts>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>download</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>io.apicurio</groupId>
+            <artifactId>apicurio-registry-maven-plugin</artifactId>
+            <version>${apicurio-registry.version}</version>
+            <executions>
+              <execution>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>download</goal>
+                </goals>
+                <configuration>
+                  <registryUrl>${apicurio.registry.url}</registryUrl>
+                  <artifacts>
+                    <artifact>
+                      <groupId>default</groupId>
+                      <artifactId>${apicurio.registry.artifact.artifact-id.user}</artifactId>
+                      <!-- <version>1</version> -->
+                      <file>${project.build.directory}/downloaded-resources/user.avsc</file>
+                      <overwrite>true</overwrite>
+                    </artifact>
+                  </artifacts>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
